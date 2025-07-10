@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnosis Penyakit - Sistem Bantuan Medis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+
+        .warning h3 {
+            color: #d63031;
+            margin-bottom: 10px;
+        }
+
+        .symptoms-section {
+            margin-bottom: 30px;
+        }
+
+        .symptoms-section h2 {
+            color: #2d3436;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .symptoms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .symptom-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .symptom-item:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateY(-2px);
+        }
+
+        .symptom-item.selected {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .symptom-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .symptom-item label {
+            cursor: pointer;
+            font-weight: 500;
+            color: #2d3436;
+        }
+
+        .diagnose-btn {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 184, 148, 0.3);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .diagnose-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 184, 148, 0.4);
+        }
+
+        .diagnose-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #74b9ff;
+            display: none;
+        }
+
+        .results h3 {
+            color: #2d3436;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+        }
+
+        .disease-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-left: 4px solid #74b9ff;
+        }
+
+        .disease-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+
+        .disease-match {
+            background: #74b9ff;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .disease-description {
+            color: #636e72;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .disease-recommendation {
+            background: #fdcb6e;
+            color: #2d3436;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #636e72;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .symptoms-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Sistem Diagnosis Penyakit</h1>
+            <p>Pilih gejala yang Anda alami untuk mendapatkan kemungkinan diagnosis</p>
+        </div>
+        
+        <div class="content">
+            <div class="warning">
+                <h3>⚠️ Peringatan Penting</h3>
+                <p>Sistem ini hanya untuk referensi awal dan tidak menggantikan konsultasi medis profesional. Selalu konsultasikan dengan dokter untuk diagnosis yang akurat dan pengobatan yang tepat.</p>
+            </div>
+
+            <div class="symptoms-section">
+                <h2>Pilih Gejala yang Anda Alami:</h2>
+                <div class="symptoms-grid" id="symptomsGrid">
+                    <!-- Gejala akan diisi oleh JavaScript -->
+                </div>
+                
+                <button class="diagnose-btn" id="diagnoseBtn" onclick="diagnose()">
+                    🔍 Diagnosis Sekarang
+                </button>
+            </div>
+
+            <div class="results" id="results">
+                <h3>Kemungkinan Diagnosis:</h3>
+                <div id="diagnosisResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background: linear-gradient(135deg, #2d3436, #636e72); color: white; text-align: center; padding: 30px 20px; margin-top: 40px;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <p style="font-size: 1.1em; margin-bottom: 10px; font-weight: 500;">
+                © 2025 Sistem Diagnosis Penyakit
+            </p>
+            <p style="font-size: 1em; margin-bottom: 15px; opacity: 0.9;">
+                Kelompok 4 - Teknik Informatika - UMSIDA
+            </p>
+            <p style="font-size: 0.9em; opacity: 0.8; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;">
+                Tugas UAS Semester 6 - Universitas Muhammadiyah Sidoarjo
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Database gejala
+        const symptoms = [
+            { id: 'demam', name: 'Demam / Panas' },
+            { id: 'batuk', name: 'Batuk' },
+            { id: 'pilek', name: 'Pilek / Hidung Tersumbat' },
+            { id: 'sakit_kepala', name: 'Sakit Kepala' },
+            { id: 'sakit_tenggorokan', name: 'Sakit Tenggorokan' },
+            { id: 'nyeri_otot', name: 'Nyeri Otot' },
+            { id: 'mual', name: 'Mual' },
+            { id: 'muntah', name: 'Muntah' },
+            { id: 'diare', name: 'Diare' },
+            { id: 'sakit_perut', name: 'Sakit Perut' },
+            { id: 'lemas', name: 'Lemas / Kelelahan' },
+            { id: 'nafsu_makan_hilang', name: 'Nafsu Makan Hilang' },
+            { id: 'bersin', name: 'Bersin-bersin' },
+            { id: 'mata_merah', name: 'Mata Merah / Gatal' },
+            { id: 'ruam_kulit', name: 'Ruam Kulit' },
+            { id: 'gatal', name: 'Gatal-gatal' },
+            { id: 'sesak_napas', name: 'Sesak Napas' },
+            { id: 'nyeri_dada', name: 'Nyeri Dada' },
+            { id: 'pusing', name: 'Pusing' },
+            { id: 'konstipasi', name: 'Konstipasi / Sembelit' }
+        ];
+
+        // Database penyakit dan gejalanya
+        const diseases = [
+            {
+                name: 'Flu / Influenza',
+                symptoms: ['demam', 'batuk', 'pilek', 'sakit_kepala', 'nyeri_otot', 'lemas'],
+                description: 'Infeksi virus yang menyerang sistem pernapasan, biasanya berlangsung 7-10 hari.',
+                recommendation: 'Istirahat cukup, minum banyak air, dan konsumsi vitamin C. Segera ke dokter jika demam tinggi.'
+            },
+            {
+                name: 'Pilek / Common Cold',
+                symptoms: ['pilek', 'bersin', 'sakit_tenggorokan', 'batuk', 'sakit_kepala'],
+                description: 'Infeksi virus ringan pada saluran pernapasan atas.',
+                recommendation: 'Istirahat, minum air hangat, dan konsumsi makanan bergizi.'
+            },
+            {
+                name: 'Gastroenteritis',
+                symptoms: ['mual', 'muntah', 'diare', 'sakit_perut', 'demam', 'lemas'],
+                description: 'Peradangan pada lambung dan usus, biasanya disebabkan oleh infeksi.',
+                recommendation: 'Minum banyak cairan, hindari makanan berat, segera ke dokter jika dehidrasi.'
+            },
+            {
+                name: 'Alergi',
+                symptoms: ['bersin', 'mata_merah', 'ruam_kulit', 'gatal', 'pilek'],
+                description: 'Reaksi sistem imun terhadap alergen tertentu.',
+                recommendation: 'Hindari alergen, konsumsi antihistamin, konsultasi dengan dokter untuk tes alergi.'
+            },
+            {
+                name: 'Migrain',
+                symptoms: ['sakit_kepala', 'mual', 'muntah', 'pusing'],
+                description: 'Sakit kepala berdenyut yang biasanya hanya pada satu sisi kepala.',
+                recommendation: 'Istirahat di tempat gelap dan tenang, hindari pemicu migrain, konsultasi dokter.'
+            },
+            {
+                name: 'Asma',
+                symptoms: ['sesak_napas', 'batuk', 'nyeri_dada'],
+                description: 'Penyakit kronis yang menyebabkan penyempitan saluran napas.',
+                recommendation: 'Gunakan inhaler sesuai petunjuk dokter, hindari pemicu asma, kontrol rutin.'
+            },
+            {
+                name: 'Tifus',
+                symptoms: ['demam', 'sakit_kepala', 'nyeri_otot', 'mual', 'sakit_perut', 'lemas'],
+                description: 'Infeksi bakteri yang dapat menyebabkan demam tinggi dan komplikasi serius.',
+                recommendation: 'Segera konsultasi dokter untuk pemeriksaan dan pengobatan antibiotik.'
+            },
+            {
+                name: 'Disentri',
+                symptoms: ['diare', 'sakit_perut', 'demam', 'mual', 'lemas'],
+                description: 'Infeksi usus yang menyebabkan diare berdarah dan nyeri perut.',
+                recommendation: 'Segera ke dokter, minum banyak cairan, jaga kebersihan.'
+            },
+            {
+                name: 'Sinusitis',
+                symptoms: ['sakit_kepala', 'pilek', 'nyeri_dada', 'demam'],
+                description: 'Peradangan pada sinus yang menyebabkan hidung tersumbat dan nyeri wajah.',
+                recommendation: 'Kompres hangat, steam inhalation, konsultasi dokter untuk pengobatan.'
+            },
+            {
+                name: 'Konstipasi',
+                symptoms: ['konstipasi', 'sakit_perut', 'mual', 'lemas'],
+                description: 'Kesulitan buang air besar atau feses yang keras.',
+                recommendation: 'Konsumsi serat tinggi, minum banyak air, olahraga teratur.'
+            }
+        ];
+
+        // Render gejala
+        function renderSymptoms() {
+            const grid = document.getElementById('symptomsGrid');
+            grid.innerHTML = '';
+            
+            symptoms.forEach(symptom => {
+                const div = document.createElement('div');
+                div.className = 'symptom-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="${symptom.id}" onchange="toggleSymptom('${symptom.id}')">
+                    <label for="${symptom.id}">${symptom.name}</label>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // Toggle gejala
+        function toggleSymptom(symptomId) {
+            const checkbox = document.getElementById(symptomId);
+            const item = checkbox.parentElement;
+            
+            if (checkbox.checked) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+            
+            updateDiagnoseButton();
+        }
+
+        // Update tombol diagnosis
+        function updateDiagnoseButton() {
+            const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const btn = document.getElementById('diagnoseBtn');
+            
+            if (checkedBoxes.length > 0) {
+                btn.disabled = false;
+                btn.textContent = `🔍 Diagnosis Sekarang (${checkedBoxes.length} gejala)`;
+            } else {
+                btn.disabled = true;
+                btn.textContent = '🔍 Diagnosis Sekarang';
+            }
+        }
+
+        // Fungsi diagnosis
+        function diagnose() {
+            const selectedSymptoms = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.id);
+            
+            if (selectedSymptoms.length === 0) {
+                alert('Silakan pilih minimal satu gejala untuk diagnosis!');
+                return;
+            }
+
+            // Hitung kecocokan untuk setiap penyakit
+            const matches = diseases.map(disease => {
+                const matchingSymptoms = disease.symptoms.filter(symptom => 
+                    selectedSymptoms.includes(symptom)
+                );
+                
+                const matchPercentage = (matchingSymptoms.length / disease.symptoms.length) * 100;
+                
+                return {
+                    ...disease,
+                    matchingSymptoms: matchingSymptoms.length,
+                    matchPercentage: Math.round(matchPercentage),
+                    totalSymptoms: disease.symptoms.length
+                };
+            })
+            .filter(disease => disease.matchingSymptoms > 0)
+            .sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+            displayResults(matches);
+        }
+
+        // Tampilkan hasil
+        function displayResults(matches) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContainer = document.getElementById('diagnosisResults');
+            
+            if (matches.length === 0) {
+                resultsContainer.innerHTML = '<div class="no-results">Tidak ditemukan kemungkinan diagnosis berdasarkan gejala yang dipilih. Silakan konsultasi dengan dokter untuk pemeriksaan lebih lanjut.</div>';
+            } else {
+                resultsContainer.innerHTML = matches.map(disease => `
+                    <div class="disease-item">
+                        <div class="disease-name">${disease.name}</div>
+                        <div class="disease-match">Kecocokan: ${disease.matchPercentage}% (${disease.matchingSymptoms}/${disease.totalSymptoms} gejala)</div>
+                        <div class="disease-description">${disease.description}</div>
+                        <div class="disease-recommendation"><strong>Rekomendasi:</strong> ${disease.recommendation}</div>
+                    </div>
+                `).join('');
+            }
+            
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Inisialisasi
+        document.addEventListener('DOMContentLoaded', function() {
+            renderSymptoms();
+            updateDiagnoseButton();
+        });
+    </script>
+</body>
+</html>
